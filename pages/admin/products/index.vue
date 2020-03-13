@@ -1,12 +1,14 @@
 <template>
+  <div class="admin__content">
 
-  <div class="home">
-    <h2>Home</h2>
-    <filters
-      @startFilter="startFilter"
-      :products_loading="products_loading"
-      :categories_loading="categories_loading"
-    />
+    <div class="d-flex align-center justify-between">
+      <h3 class="admin__content-title">Products</h3>
+
+      <n-link :to="route('admin-products-create')" class="waves-effect waves-light btn">
+        <i class="material-icons left">add</i>
+        Create product
+      </n-link>
+    </div>
 
     <div v-if="products_loading || categories_loading" class="center-box">
       <loading />
@@ -15,8 +17,12 @@
     <p v-else-if="!pagesResult.length">No products</p>
 
     <template v-else>
+      <filters />
+
       <products-list
         :products="pagesResult"
+        :xlCount="3"
+        :btnLink="{link: 'admin-products-id', text: 'Change'}"
       />
 
       <vue-paginate
@@ -30,27 +36,26 @@
         :page-class="'waves-effect'"
       ></vue-paginate>
     </template>
-  </div>
 
+  </div>
 </template>
 
 <script>
   import { mapActions, mapState } from 'vuex'
-  import PaginationMixin from '../mixins/pagination'
-  import ProductsList from "../components/ProductsList";
-  import Filters from "../components/site/pages/home/Filters";
+  import PaginationMixin from '../../../mixins/pagination'
+  import Filters from "../../../components/site/pages/home/Filters";
+  import ProductsList from "../../../components/ProductsList";
 
   export default {
-    name: 'home',
+    name: "Products",
+
+    layout: 'admin',
 
     mixins: [PaginationMixin],
 
     data() {
       return {
-        messages: {
-          only_admin: 'Login for site administrators only!',
-          auth: 'Login required!',
-        }
+        itemsPerPage: 9,
       }
     },
 
@@ -63,10 +68,6 @@
         },
         deep: true,
         immediate: true
-      },
-
-      $route(route) {
-        this.checkQuery(route);
       }
     },
 
@@ -78,18 +79,6 @@
       ...mapActions('categories', [
         'getCategories'
       ]),
-
-      checkQuery(route) {
-        const queryMessageKey = route.query.info;
-
-        if(queryMessageKey && this.messages.hasOwnProperty(queryMessageKey)) {
-          this.$noty.error(this.messages[queryMessageKey]);
-        }
-      },
-
-      startFilter(formData) {
-        console.log(formData);
-      }
     },
 
     computed: {
@@ -105,8 +94,6 @@
     },
 
     mounted() {
-      this.checkQuery(this.$route);
-
       if(!this.products.length) {
         try {
           this.getProducts();
@@ -133,4 +120,6 @@
   }
 </script>
 
+<style scoped>
 
+</style>
