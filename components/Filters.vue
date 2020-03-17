@@ -11,35 +11,60 @@
 
       <div class="filter-item col s12 l4">
         <div class="input-field">
-          <input v-model="formData.searchString" ref="name" id="last_name" placeholder="Search" type="text" class="validate">
+          <input
+            v-model="formData.searchString"
+            ref="name"
+            id="last_name"
+            placeholder="Search"
+            type="text"
+            class="validate"
+          >
         </div>
       </div>
 
       <div class="filter-item col s6 l3">
-        <select v-model="formData.brands" ref="brand" multiple>
-          <option value="" disabled selected>Choose brand</option>
-          <option value="olimp">Olimp</option>
-          <option value="belhard">Belhard</option>
-          <option value="animal">Animal</option>
-          <option value="5%">5%</option>
+        <select
+          v-model="formData.categories"
+          ref="category"
+          multiple
+        >
+          <option
+            v-if="!categories.length"
+            value=""
+            disabled
+            selected
+          >No categories</option>
+
+          <option
+            v-else
+            value=""
+            disabled
+          >Choose category</option>
+
+          <option
+            v-if="category.productCount > 0"
+            v-for="category in categories"
+            :key="category.id"
+            :value="category.id"
+            :selected="s"
+          >{{ category.name }} ({{ category.productCount }})</option>
         </select>
       </div>
 
       <div class="filter-item col s6 l3">
         <select v-model="formData.weight" ref="weight" multiple>
           <option value="" disabled selected>Choose weight</option>
-          <option value="1">0kg - 0.5kg</option>
-          <option value="2">0.5kg - 1kg</option>
-          <option value="3">1kg - 1.5kg</option>
-          <option value="4">1.5kg - 2kg</option>
-          <option value="5">2kg - 2.5kg</option>
-          <option value="6">2.5kg - 3kg</option>
+          <option
+            v-for="weight in weightList"
+            :key="weight.value"
+            :value="weight.value"
+          >{{ weight.text }}</option>
         </select>
       </div>
 
       <div class="filter-item col s6 l2">
-        <span v-model="formData.sort" class="label">Sort by</span>
-        <select ref="sort">
+        <span class="label">Sort by</span>
+        <select v-model="formData.sort" ref="sort">
           <option value="new" selected>New</option>
           <option value="price-desc">Price max-min</option>
           <option value="price-asc">Price min-max</option>
@@ -74,17 +99,16 @@
       </div>
 
       <div class="filter-item filter-item_last col s6 l2">
-        <button
+        <span
           v-if="filteringWas"
           @click.prevent="resetFilter"
           :disabled="products_loading || categories_loading"
           class="waves-effect waves-light btn"
         >
           Reset
-        </button>
+        </span>
 
         <button
-          @click.prevent="startFilter"
           :disabled="products_loading || categories_loading"
           class="waves-effect center-box waves-light btn"
         >
@@ -102,7 +126,7 @@
   let VueSlider;
   if (process.client) VueSlider = require('vue-slider-component');
   import 'vue-slider-component/theme/default.css'
-  import FormMixins from "../../../../mixins/form";
+  import FormMixins from "../mixins/form";
 
   export default {
     name: "Filters",
@@ -115,6 +139,13 @@
       },
       categories_loading: {
         type: Boolean
+      },
+      categories: {
+        type: Array,
+        default: []
+      },
+      maxPrice: {
+        type: Number
       }
     },
 
@@ -122,48 +153,55 @@
       return {
         formData: {
           searchString: '',
-          brands: [],
+          categories: [],
           weight: [],
           sort: 'new',
-          price: [0, 1000],
+          price: [0, this.maxPrice],
         },
-        defaultPrice: [0, 1000],
-        defautSort: 'new',
-        step: 20,
+        defaultPrice: [0, this.maxPrice],
+        defaultSort: 'new',
+        step: 1,
         formatter: '{value}$',
-        brandsInstance: '',
+        categoryInstance: '',
         weightInstance: '',
         sortInstance: '',
-        filteringWas: false
+        filteringWas: false,
+        s: false
+      }
+    },
+
+    watch: {
+      'formData.weight'(s) {
+        this.s = !this.s;
       }
     },
 
     methods: {
       initFormsItems() {
-        this.brandsInstance = M.FormSelect.init(this.$refs.brand, {});
+        this.categoryInstance = M.FormSelect.init(this.$refs.category, {});
         this.weightInstance = M.FormSelect.init(this.$refs.weight, {});
         this.sortInstance = M.FormSelect.init(this.$refs.sort, {});
       },
 
       destroyFormsItems() {
-        if(this.brandsInstance.destroy) this.brandsInstance.destroy();
+        if(this.categoryInstance.destroy) this.categoryInstance.destroy();
         if(this.weightInstance.destroy) this.weightInstance.destroy();
         if(this.sortInstance.destroy) this.sortInstance.destroy();
       },
 
       clearValues() {
-        this.$refs.brand.value = '';
+        this.$refs.category.value = '';
         this.$refs.weight.value = '';
-        this.$refs.sort.value = this.defautSort;
+        this.$refs.sort.value = this.defaultSort;
       },
 
       fullFormReset() {
         this.formData = {
           searchString: '',
-            brands: [],
-            weight: [],
-            sort: this.defautSort,
-            price: [this.defaultPrice[0], this.defaultPrice[1]],
+          categories: [],
+          weight: [],
+          sort: this.defaultSort,
+          price: [this.defaultPrice[0], this.defaultPrice[1]],
         };
         this.clearValues();
         this.initFormsItems();
@@ -171,17 +209,45 @@
 
       resetFilter() {
         this.fullFormReset();
+        this.filteringWas = false;
+        this.$emit('startFilter', {...this.formData});
       },
 
       startFilter() {
         this.filteringWas = true;
-        this.$emit('startFilter', this.formData);
+        this.$emit('startFilter', {...this.formData});
       }
 
     },
 
+    computed: {
+      weightList() {
+        const maxValue = 20;
+        let list = [];
+
+        for(let item = 0; item <= maxValue; item++) {
+
+          if(item !== maxValue) {
+            list.push({
+              text: `${item}kg - ${item + 1}kg`,
+              value: `${item} - ${item + 1}`,
+            });
+          } else {
+            list.push({
+              text: `${item}kg +`,
+              value: `${item}`,
+            });
+          }
+        }
+
+        return list;
+      }
+    },
+
     mounted() {
-      this.initFormsItems();
+      setTimeout(() => {
+        this.initFormsItems();
+      }, 0);
     },
 
     beforeDestroy() {

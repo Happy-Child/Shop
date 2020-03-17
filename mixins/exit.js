@@ -12,8 +12,9 @@ export default {
           if(inAdminPanel || inPersonalArea) {
             this.$router.push(this.route(routesRedirects.logout));
           }
-          
+
           this.$noty.info('You are logged out!');
+          this.$router.push(this.route(this.$route.name, null, {}));
         })
         .catch(error => {
           this.$noty.error(error.message);

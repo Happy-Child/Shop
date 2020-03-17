@@ -10,10 +10,10 @@ export default {
     formReset() {
       if(!this.formData) {
         this.$emit('resetFormData');
-        this.$refs.observer.reset();
+        if(this.$refs.observer) this.$refs.observer.reset();
       } else {
         this.clearFields();
-        this.$refs.observer.reset();
+        if(this.$refs.observer) this.$refs.observer.reset();
       }
       
       setTimeout(() => {

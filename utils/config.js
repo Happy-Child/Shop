@@ -5,7 +5,7 @@ const roles = {
 
 const defaultUserData = {
   imageSrc: null,
-  imageName: process.env.default_user_image,
+  imageName: null,
   email: null,
   name: null,
   gender: null,
@@ -18,7 +18,7 @@ const defaultUserData = {
 
 const defaultProductData = {
   imageSrc: null,
-  imageName: process.env.default_product_image,
+  imageName: null,
   name: null,
   creator_id: null,
   category_id: null,

@@ -5,9 +5,12 @@
   >
     <form @submit.prevent="handleSubmit(submit)" class="product-content">
 
-      <loading v-if="curProductLoading && thisEdit" />
-
-      <div v-else class="personal__content-image">
+      <ValidationProvider
+        class="personal__content-image"
+        rules="image|size:1000"
+        ref="fileProvider"
+        v-slot="{ validate, errors }"
+      >
         <div
           @click="$refs.uploadField.click()"
           class="personal__content-wrap-cur-image"
@@ -21,14 +24,19 @@
           <div class="personal__content-image-overlay"></div>
         </div>
 
-        <button
-          v-if="imageSrcUploaded"
-          @click.prevent="removeUploadedImage()"
-          class="waves-effect waves-light red lighten-1 btn-large"
-        >
-          <span>Remove image</span>
-        </button>
-      </div>
+        <div>
+          <div class="text-bold">Max file size 1MB</div>
+
+          <button
+            v-if="imageSrcUploaded"
+            @click.prevent="removeUploadedImage()"
+            class="waves-effect waves-light red lighten-1 btn-large"
+          >
+            <span>Remove image</span>
+          </button>
+        </div>
+      </ValidationProvider>
+
 
       <ValidationProvider rules="required" v-slot="{ errors, valid, changed }">
         <div class="input-field">
@@ -191,7 +199,17 @@
   import FormMixins from "../../../../mixins/form";
   import Modal from "../../../Modal";
   import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-  import { required } from 'vee-validate/dist/rules';
+  import { required, image, size} from 'vee-validate/dist/rules';
+
+  extend('image', {
+    ...image,
+    message: 'Invalid file format'
+  });
+
+  extend('size', {
+    ...size,
+    message: 'Exceeds the permissible size'
+  });
 
   extend('required', {
     ...required,
@@ -208,12 +226,15 @@
       thisEdit: {
         type: Boolean
       },
-      product: {
-        type: Object
+      product: {},
+      products: {
+        type: Array,
+        default: []
       },
-      curProductLoading: {
-        type: Boolean
-      }
+      categories: {
+        type: Array,
+        default: []
+      },
     },
 
     data() {
@@ -222,34 +243,15 @@
         uploadedFile: null,
         imageSrcUploaded: null,
         product_id: this.getRouteParam('id'),
-        defaultProducts: [],
         categoryInstance: '',
       }
     },
 
     watch: {
-      products: {
-        handler(products) {
-          this.defaultProducts = JSON.parse(JSON.stringify(products));
-        },
-        deep: true,
-        immediate: true
-      },
       product: {
         handler(product) {
           if(product) {
             this.formData = JSON.parse(JSON.stringify(product));
-          }
-        },
-        deep: true,
-        immediate: true
-      },
-      categories_loading: {
-        handler(loading) {
-          if(!loading && !this.categoryInstance) {
-            setTimeout(() => {
-              this.initFormsItems();
-            }, 0);
           }
         },
         deep: true,
@@ -259,18 +261,20 @@
 
     methods: {
       ...mapActions('products', [
-        'getProducts',
         'updateProduct',
         'createProduct',
         'deleteProduct',
       ]),
 
-      ...mapActions('categories', [
-        'getCategories'
-      ]),
+      async uploadImage(e) {
+        const provider = this.$refs.fileProvider;
+        const { valid } = await provider.validate(e);
 
-      uploadImage(e) {
-        if(!e.target.files[0]) return;
+        if(!valid) {
+          this.$noty.error(provider.errors.join('\n'));
+          if(provider) provider.value = '';
+          return;
+        }
 
         this.uploadedFile = e.target.files[0];
         this.imageSrcUploaded = window.URL.createObjectURL(this.uploadedFile);
@@ -279,7 +283,8 @@
       removeUploadedImage() {
         this.uploadedFile = null;
         this.imageSrcUploaded = null;
-        this.$refs.uploadField.value = '';
+        if(this.$refs.fileProvider) this.$refs.fileProvider.value = '';
+        if(this.$refs.uploadField) this.$refs.uploadField.value = '';
       },
 
       initFormsItems() {
@@ -295,7 +300,7 @@
       },
 
       existThisProduct(name) {
-        return !!this.defaultProducts.find(product => {
+        return !!this.products.find(product => {
           if(this.thisEdit && product.name === this.product.name) return;
           return product.name === name;
         });
@@ -313,7 +318,7 @@
       fullFormReset() {
         this.removeUploadedImage();
         this.formReset();
-        this.$refs.category.value = '';
+        if(this.$refs.category) this.$refs.category.value = '';
         this.initFormsItems();
       },
 
@@ -383,12 +388,10 @@
 
     computed: {
       ...mapState('products', [
-        'products',
         'products_loading',
       ]),
 
       ...mapState('categories', [
-        'categories',
         'categories_loading',
       ])
     },
@@ -400,25 +403,10 @@
     },
 
     mounted() {
-      if(!this.products.length) {
-        try {
-          this.getProducts();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      if(!this.categories.length) {
-        try {
-          this.getCategories();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      M.updateTextFields();
+      setTimeout(() => {
+        this.initFormsItems();
+        M.updateTextFields();
+      }, 0);
 
       const modal = document.querySelectorAll(`#${this.questionModalId}`);
       M.Modal.init(modal, {});

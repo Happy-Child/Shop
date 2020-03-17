@@ -1,3 +1,5 @@
+import { mapGetters } from "vuex";
+
 export default {
 
   data() {
@@ -20,8 +22,8 @@ export default {
       if(this.userMenuInstance) this.userMenuInstance.destroy();
     },
   
-    route(name, params = {}) {
-      return {name, params};
+    route(name, params = {}, query = {}) {
+      return {name, params, query};
     },
     
     getRouteParam(name) {
@@ -31,6 +33,14 @@ export default {
     getRouteQuery(name) {
       return this.$route.query[name] ? this.$route.query[name] : null;
     }
+  },
+  
+  computed: {
+    ...mapGetters('users', [
+      'isAuth',
+      'isAdmin',
+      'isDefaultUser',
+    ]),
   },
   
   mounted() {

@@ -235,10 +235,6 @@
     },
 
     computed: {
-      ...mapGetters('users', [
-        'isAuth'
-      ]),
-
       ...mapState('users', [
         'user',
         'user_loading'
@@ -251,7 +247,9 @@
     },
 
     mounted() {
-      M.updateTextFields();
+      setTimeout(() => {
+        M.updateTextFields();
+      }, 0);
     },
 
     components: {

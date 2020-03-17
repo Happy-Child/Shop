@@ -1,3 +1,4 @@
+import webpack from 'webpack'
 
 export default {
   mode: 'universal',
@@ -34,11 +35,11 @@ export default {
   ** Plugins to load before mounting the App
   */
   plugins: [
+    { src: '~filters/date' },
     { src: '~plugins/mixins' },
     { src: '~plugins/modalsLogic' },
     { src: '~plugins/loadingComponent' },
     { src: '~plugins/noty', mode: 'client' },
-    { src: '~plugins/lodash', mode: 'client' },
     { src: '~plugins/vue-pagination', mode: 'client' },
   ],
   /*

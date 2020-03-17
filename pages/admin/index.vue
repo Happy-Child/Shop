@@ -16,54 +16,25 @@
 </template>
 
 <script>
-  import { mapActions, mapState } from 'vuex'
+  import { mapState } from 'vuex'
+  import getProdCatMixin from '../../mixins/getProdCat'
 
   export default {
     name: "Admin",
 
     layout: 'admin',
 
-    methods: {
-      ...mapActions('categories', [
-        'getCategories',
-      ]),
-
-      ...mapActions('products', [
-        'getProducts',
-      ]),
-    },
+    mixins: [getProdCatMixin],
 
     computed: {
       ...mapState('categories', [
-        'categories',
         'categories_loading',
       ]),
 
       ...mapState('products', [
-        'products',
         'products_loading',
       ])
-    },
-
-    mounted() {
-      if(!this.categories.length) {
-        try {
-          this.getCategories();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      if(!this.products.length) {
-        try {
-          this.getProducts();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-    },
+    }
   }
 </script>
 

@@ -122,9 +122,6 @@
     computed: {
       ...mapState('users', [
         'user'
-      ]),
-      ...mapGetters('users', [
-        'isAuth'
       ])
     },
 

@@ -8,29 +8,44 @@
       <h4 class="personal__content-title">User data</h4>
 
 
-      <loading v-if="!formData.imageSrc" />
+      <loading v-if="user_loading" />
 
-      <div v-else class="personal__content-image">
+      <ValidationProvider
+        v-else
+        class="personal__content-image"
+        rules="image|size:1000"
+        ref="fileProvider"
+        v-slot="{ validate, errors }"
+      >
         <div
           @click="$refs.uploadField.click()"
           class="personal__content-wrap-cur-image"
         >
-          <input @change="uploadImage" ref="uploadField" type="file">
+          <input
+            @change="uploadImage"
+            ref="uploadField"
+            type="file"
+          >
 
           <img v-if="imageSrcUploaded" :src="imageSrcUploaded" alt="">
-          <img v-else :src="formData.imageSrc" alt="">
+          <img v-else-if="formData.imageSrc" :src="formData.imageSrc" alt="">
+          <img v-else src="~assets/images/default_user_image.svg" alt="">
 
           <div class="personal__content-image-overlay"></div>
         </div>
 
-        <button
-          v-if="imageSrcUploaded"
-          @click.prevent="removeUploadedImage()"
-          class="waves-effect waves-light red lighten-1 btn-large"
-        >
-          <span>Remove image</span>
-        </button>
-      </div>
+        <div>
+          <div class="text-bold">Max file size 1MB</div>
+
+          <button
+            v-if="imageSrcUploaded"
+            @click.prevent="removeUploadedImage()"
+            class="my-1 waves-effect waves-light red lighten-1 btn-large"
+          >
+            <span>Remove image</span>
+          </button>
+        </div>
+      </ValidationProvider>
 
 
       <ValidationProvider rules="required" v-slot="{ errors, valid, changed }">
@@ -108,7 +123,10 @@
         </span>
       </ValidationProvider>
 
-      <div class="address-box d-flex justify-between input-field">
+      <div
+        v-if="!isAdmin"
+        class="address-box d-flex justify-between input-field"
+      >
         <div class="address-box__control">
           <p>Delivery addresses</p>
           <div class="address-box__input d-flex">
@@ -177,7 +195,7 @@
   import { defaultUserData } from '../../../../../utils/config';
   import { mapActions, mapState } from 'vuex'
   import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-  import { required, email } from 'vee-validate/dist/rules';
+  import { required, email, image, size } from 'vee-validate/dist/rules';
 
   extend('minmax', {
     validate: (value, { min, max }) => {
@@ -190,6 +208,16 @@
   extend('email', {
     ...email,
     message: 'Email invalid'
+  });
+
+  extend('image', {
+    ...image,
+    message: 'Invalid file format'
+  });
+
+  extend('size', {
+    ...size,
+    message: 'Exceeds the permissible size'
   });
 
   extend('required', {
@@ -230,8 +258,15 @@
         'userUpdate',
       ]),
 
-      uploadImage(e) {
-        if(!e.target.files[0]) return;
+      async uploadImage(e) {
+        const provider = this.$refs.fileProvider;
+        const { valid } = await provider.validate(e);
+
+        if(!valid) {
+          this.$noty.error(provider.errors.join('\n'));
+          if(provider) provider.value = '';
+          return;
+        }
 
         this.uploadedFile = e.target.files[0];
         this.imageSrcUploaded = window.URL.createObjectURL(this.uploadedFile);
@@ -240,7 +275,8 @@
       removeUploadedImage() {
         this.uploadedFile = null;
         this.imageSrcUploaded = null;
-        this.$refs.uploadField.value = '';
+        if(this.$refs.fileProvider) this.$refs.fileProvider.value = '';
+        if(this.$refs.uploadField) this.$refs.uploadField.value = '';
       },
 
       initFormsItems() {
@@ -257,7 +293,7 @@
       },
 
       addAddress() {
-        if(!this.address) return;
+        if(!this.address || this.isAdmin) return;
 
         if(this.existThisAddress(this.address)) {
           this.$noty.error('This address has already been added!');
@@ -291,13 +327,7 @@
         };
 
         if(this.uploadedFile) {
-          userData = {
-            data: {
-              ...this.formData,
-              imageName: this.uploadedFile.name,
-            },
-            file: this.uploadedFile
-          };
+          userData.file = this.uploadedFile;
         }
 
         this.userUpdate(userData)
@@ -329,8 +359,10 @@
     },
 
     mounted() {
-      this.initFormsItems();
-      M.updateTextFields();
+      setTimeout(() => {
+        this.initFormsItems();
+        M.updateTextFields();
+      }, 0);
     },
 
     beforeDestroy() {

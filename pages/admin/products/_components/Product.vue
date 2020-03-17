@@ -14,7 +14,8 @@
     <product-content
       :this-edit="thisEdit"
       :product="product"
-      :curProductLoading="curProductLoading"
+      :products="products"
+      :categories="categories"
     />
 
   </div>
@@ -22,36 +23,25 @@
 
 <script>
   import ProductContent from "../../../../components/admin/pages/products/ProductContent";
+  import getProdCatMixin from "../../../../mixins/getProdCat";
 
   export default {
     layout: 'admin',
 
-    async asyncData ({ store, params, error }) {
-      if(params.id) {
-
-        try {
-          const product = await store.dispatch('products/getProductById', params.id);
-
-          if(product) {
-            return {
-              product,
-              curProductLoading: false
-            };
-          } else {
-            throw({ statusCode: 404, message: 'Product with id not found' });
-          }
-        } catch (e) {
-          error({ statusCode: 404, message: e.message });
-        }
-
-      }
-    },
+    mixins: [getProdCatMixin],
 
     data() {
       return {
-        product: {},
-        curProductLoading: true,
         thisEdit: !!this.getRouteParam('id')
+      }
+    },
+
+    computed: {
+      product() {
+        if(!this.thisEdit) return false;
+
+        const id = this.getRouteParam('id');
+        return this.products.find(product => product.id === id);
       }
     },
 

@@ -34,10 +34,9 @@ export const actions = {
   async uploadUserImageAndGetSrc({ state, commit }, file) {
     let storageRef = storage.ref();
     const curImageName = state.user.imageName;
-    const deleteCurImage = curImageName !== process.env.default_user_image;
 
     if(typeof file === 'object') {
-      if(deleteCurImage) {
+      if(curImageName) {
         try {
           await storageRef.child(`${path_users}/${curImageName}`).delete();
         } catch(error) {}
@@ -104,11 +103,8 @@ export const actions = {
       await auth.createUserWithEmailAndPassword(formData.email, formData.password);
       const { uid } = await auth.currentUser;
 
-      const imageSrc = await dispatch('uploadUserImageAndGetSrc', defaultUserData.imageName);
-
       await dispatch('setUserDataOnDB', {
         ...defaultUserData,
-        imageSrc,
         name: formData.name,
         email: formData.email,
         gender: formData.gender,
@@ -152,6 +148,7 @@ export const actions = {
 
       if(userData.file) {
         const imageSrc = await dispatch('uploadUserImageAndGetSrc', userData.file);
+        userData.data.imageName = userData.file.name;
         userData.data.imageSrc = imageSrc;
       }
 

@@ -10,15 +10,17 @@
       </n-link>
     </div>
 
-    <div v-if="products_loading || categories_loading" class="center-box">
-      <loading />
-    </div>
+    <filters
+      @startFilter="startFilter"
+      :products_loading="products_loading"
+      :categories_loading="categories_loading"
+      :max-price="maxPrice"
+      :categories="categories"
+    />
 
-    <p v-else-if="!pagesResult.length">No products</p>
+    <p v-if="!pagesResult.length">No products</p>
 
     <template v-else>
-      <filters />
-
       <products-list
         :products="pagesResult"
         :xlCount="3"
@@ -41,9 +43,11 @@
 </template>
 
 <script>
-  import { mapActions, mapState } from 'vuex'
+  import { mapState } from 'vuex'
   import PaginationMixin from '../../../mixins/pagination'
-  import Filters from "../../../components/site/pages/home/Filters";
+  import FilterMixin from '../../../mixins/filter'
+  import Filters from "../../../components/Filters";
+  import getProdCatMixin from '../../../mixins/getProdCat'
   import ProductsList from "../../../components/ProductsList";
 
   export default {
@@ -51,7 +55,7 @@
 
     layout: 'admin',
 
-    mixins: [PaginationMixin],
+    mixins: [PaginationMixin, FilterMixin, getProdCatMixin],
 
     data() {
       return {
@@ -71,46 +75,14 @@
       }
     },
 
-    methods: {
-      ...mapActions('products', [
-        'getProducts',
-      ]),
-
-      ...mapActions('categories', [
-        'getCategories'
-      ]),
-    },
-
     computed: {
       ...mapState('products', [
-        'products',
         'products_loading',
       ]),
 
       ...mapState('categories', [
-        'categories',
         'categories_loading',
       ])
-    },
-
-    mounted() {
-      if(!this.products.length) {
-        try {
-          this.getProducts();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      if(!this.categories.length) {
-        try {
-          this.getCategories();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
     },
 
     components: {

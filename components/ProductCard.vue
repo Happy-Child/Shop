@@ -34,7 +34,7 @@
 
       <div class="card-action">
         <slot name="btns">
-          <template v-if="cartMode">
+          <template v-if="cartMode && !isAdmin">
             <numeric-input
               :min="1"
               align="center"
@@ -50,7 +50,7 @@
             </button>
           </template>
 
-          <template v-else>
+          <template v-else-if="!isAdmin">
             <button
               @click.prevent="addToCart"
               class="waves-effect waves-light btn"
@@ -134,6 +134,10 @@
 </script>
 
 <style scoped>
+
+  .card-action:empty {
+    display: none;
+  }
 
   .card {
     height: 100%;

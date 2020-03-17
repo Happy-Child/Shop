@@ -20,7 +20,7 @@ export const actions = {
   async getCategories({ commit }) {
     try {
       commit(CATEGORIES_LOADING, true);
-      const categories = await firestore.collection('categories').get();
+      const categories = await firestore.collection('categories').orderBy('created_at', 'desc').get();
 
       commit(SET_CATEGORIES, categories.docs);
       commit(CATEGORIES_LOADING, false);

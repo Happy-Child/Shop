@@ -11,7 +11,10 @@
               <n-link :to="route('index')">Home</n-link>
             </li>
 
-            <li :class="{'active': $route.name === 'cart'}">
+            <li
+              v-if="!isAdmin"
+              :class="{'active': $route.name === 'cart'}"
+            >
               <n-link :to="route('cart')">
                 <span>Cart</span>
                 <span class="cart__count">{{ cartCounter }}</span>
@@ -49,7 +52,7 @@
 
       <ul v-show="isAuth" id="user-menu" class="dropdown-content">
         <li v-if="isAdmin">
-          <n-link :to="route('admin')">Admin</n-link>
+          <n-link :to="route('admin')">Admin panel</n-link>
         </li>
 
         <li>
@@ -88,11 +91,6 @@
     },
 
     computed: {
-      ...mapGetters('users', [
-        'isAdmin',
-        'isAuth',
-      ]),
-
       ...mapState('users', [
         'user'
       ]),

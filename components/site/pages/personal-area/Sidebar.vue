@@ -1,12 +1,13 @@
 <template>
   <div class="col s12 m4 l3">
-    <aside class="personal__sidebar">
 
+    <aside class="personal__sidebar">
       <div class="collection">
         <button
+          v-if="!tab.hide"
           v-for="tab in tabs"
           :key="tab.slug"
-          @click.prevent="changeTab(tab.slug)"
+          @click.prevent="changeTab(tab)"
           :class="{'active': curTab === tab.slug}"
           class="collection-item"
         >
@@ -20,13 +21,13 @@
           Exit
         </button>
       </div>
-
     </aside>
+
   </div>
 </template>
 
 <script>
-  import { mapActions } from 'vuex'
+  import { mapActions, mapState } from 'vuex'
   import Exit from './../../../../mixins/exit';
 
   export default {
@@ -45,13 +46,29 @@
         tabs: [
           {
             name: 'User data',
-            slug: 'user-data'
+            slug: 'user-data',
+            hide: false,
           },
           {
             name: 'History',
-            slug: 'history'
+            slug: 'history',
+            hide: 'isAdmin',
           }
+        ],
+        blockTabsForAdmin: [
+          'history'
         ]
+      }
+    },
+
+    watch: {
+      user: {
+        handler() {
+          this.tabs.forEach(tab => {
+            tab.hide = this[tab.hide];
+          });
+        },
+        immediate: true
       }
     },
 
@@ -61,8 +78,15 @@
       ]),
 
       changeTab(tab) {
-        this.$emit('changeTab', tab);
+        const resultTab = tab.hide ? 'user-data' : tab.slug;
+        this.$emit('changeTab', resultTab);
       }
+    },
+
+    computed: {
+      ...mapState('users', [
+        'user'
+      ])
     }
   }
 </script>

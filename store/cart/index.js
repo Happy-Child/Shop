@@ -49,7 +49,7 @@ export const actions = {
     commit(CHANGE_COUNTER, data);
   },
 
-  async checkoutOrder({ commit, state }, formData) {
+  async checkoutOrder({ commit, dispatch, state }, formData) {
     try {
       commit(CART_LOADING, true);
 
@@ -61,6 +61,7 @@ export const actions = {
 
       await firestore.collection('history_orders').doc().set(order);
 
+      if(state.orders.length) dispatch('getUsersOrders');
       commit(CLEAR_CART);
       commit(CART_LOADING, false);
     }

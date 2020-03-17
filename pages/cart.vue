@@ -23,6 +23,17 @@
   export default {
     name: "cart",
 
+    watch: {
+      isAdmin: {
+        handler(isAdmin) {
+          if(isAdmin) {
+            this.$router.push(this.route('index', null, { info: 'only_default_user' }));
+          }
+        },
+        immediate: true
+      }
+    },
+
     computed: {
       ...mapState('cart', [
         'cart'

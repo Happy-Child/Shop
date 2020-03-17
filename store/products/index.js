@@ -22,7 +22,8 @@ export const actions = {
   async getProducts({ commit }) {
     try {
       commit(PRODUCTS_LOADING, true);
-      const products = await firestore.collection('products').get();
+
+      const products = await firestore.collection('products').orderBy('created_at', 'desc').get();
 
       commit(SET_PRODUCTS, products.docs);
       commit(PRODUCTS_LOADING, false);
@@ -53,10 +54,10 @@ export const actions = {
 
   async uploadProductImageAndGetSrc({ state, commit }, data) {
     let storageRef = storage.ref();
-    const deleteCurImage = data.curImageName !== process.env.default_products_image;
+    const curImageName = data.curImageName;
 
     if(data.file) {
-      if(deleteCurImage) {
+      if(curImageName) {
         try {
           await storageRef.child(`${path_products}/${data.curImageName}`).delete();
         } catch(error) {}
@@ -86,16 +87,11 @@ export const actions = {
 
         formData.data.imageSrc = imageSrc;
         formData.data.imageName = formData.file.name;
-      } else {
-        imageSrc = await dispatch('uploadProductImageAndGetSrc', {
-          curImageName: defaultProductData.imageName
-        });
       }
 
       await firestore.collection('products').doc().set({
         ...defaultProductData,
         ...formData.data,
-        imageSrc,
         creator_id: rootState.users.user.uid,
         created_at: Date.now()
       });

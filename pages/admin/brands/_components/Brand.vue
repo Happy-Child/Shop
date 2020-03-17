@@ -14,6 +14,8 @@
     <brand-content
       :this-edit="thisEdit"
       :category="category"
+      :products="products"
+      :categories="categories"
     />
 
   </div>
@@ -21,32 +23,25 @@
 
 <script>
   import BrandContent from "../../../../components/admin/pages/brands/BrandContent";
+  import getProdCatMixin from "../../../../mixins/getProdCat";
 
   export default {
     layout: 'admin',
 
-    async asyncData ({ store, params, error }) {
-      if(params.id) {
-
-        try {
-          const category = await store.dispatch('categories/getCategoryById', params.id);
-
-          if(category) {
-            return { category };
-          } else {
-            throw({ statusCode: 404, message: 'Category with id not found' });
-          }
-        } catch (e) {
-          error({ statusCode: 404, message: e.message });
-        }
-
-      }
-    },
+    mixins: [getProdCatMixin],
 
     data() {
       return {
-        category: {},
         thisEdit: !!this.getRouteParam('id')
+      }
+    },
+
+    computed: {
+      category() {
+        if(!this.thisEdit) return false;
+
+        const id = this.getRouteParam('id');
+        return this.categories.find(category => category.id === id);
       }
     },
 

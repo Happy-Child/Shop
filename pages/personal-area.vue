@@ -10,6 +10,7 @@
 
       <areaContent
         :cur-tab="curTab"
+        :orders="orders"
       />
     </div>
   </div>
@@ -24,8 +25,27 @@
 
     middleware: ['check-auth'],
 
+    async asyncData({ store, error }) {
+      try {
+        let orders = store.state.cart.orders;
+
+        if(!orders.length) {
+          await store.dispatch('cart/getUsersOrders');
+          orders = store.state.cart.orders;
+        }
+
+        return {
+          orders
+        }
+      }
+      catch(e) {
+        error({ statusCode: 400, message: e.message });
+      }
+    },
+
     data() {
       return {
+        orders: [],
         curTab: 'user-data'
       }
     },

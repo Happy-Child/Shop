@@ -3,7 +3,10 @@
     <div class="personal__content">
 
       <user-data v-if="curTab === 'user-data'" />
-      <history v-else-if="curTab === 'history'" />
+      <history
+        v-else-if="!isAdmin && (curTab === 'history')"
+        :orders="orders"
+      />
 
     </div>
   </div>
@@ -19,6 +22,10 @@
     props: {
       curTab: {
         type: String
+      },
+      orders: {
+        type: Array,
+        default: []
       }
     },
 

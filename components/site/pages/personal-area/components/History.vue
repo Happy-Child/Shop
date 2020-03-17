@@ -7,18 +7,18 @@
       <loading />
     </div>
 
-    <p v-else-if="!orders.length">No orders</p>
+    <p v-else-if="!pagesResult.length">No orders</p>
 
     <template v-else>
       <div class="history__list">
         <products-group
-          v-for="order in orders"
+          v-for="order in pagesResult"
           :key="order.id"
           :order="order"
         >
           <template v-slot:topText>
             <span class="history__item-date">
-              01.02.20
+              {{ order.date | date }}
             </span>
 
             <address class="history__item-address">
@@ -28,48 +28,60 @@
         </products-group>
       </div>
 
-      <ul class="pagination center">
-        <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-        <li class="active"><a href="#!">1</a></li>
-        <li class="waves-effect"><a href="#!">2</a></li>
-        <li class="waves-effect"><a href="#!">3</a></li>
-        <li class="waves-effect"><a href="#!">4</a></li>
-        <li class="waves-effect"><a href="#!">5</a></li>
-        <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-      </ul>
+      <vue-paginate
+        v-if="pagesArray.length > 1"
+        v-model="curPage"
+        :page-count="pagesArray.length"
+        :prev-text="'<'"
+        :next-text="'>'"
+        :click-handler="paginationHandler"
+        :container-class="'pagination center'"
+        :page-class="'waves-effect'"
+      ></vue-paginate>
     </template>
 
   </div>
 </template>
 
 <script>
-  import { mapActions, mapState } from 'vuex'
+  import { mapState } from 'vuex'
   import ProductsGroup from "../../../components/ProductsGroup";
+  import PaginationMixin from '../../../../../mixins/pagination'
 
   export default {
     name: "History",
 
-    methods: {
-      ...mapActions('cart', [
-        'getUsersOrders'
-      ])
+    mixins: [PaginationMixin],
+
+    props: {
+      orders: {
+        type: Array,
+        default: []
+      }
+    },
+
+    data() {
+      return {
+        itemsPerPage: 3
+      }
+    },
+
+    watch: {
+      orders: {
+        handler(orders) {
+          if(orders.length) {
+            this.splitPages([...orders]);
+          }
+        },
+        deep: true,
+        immediate: true
+      },
     },
 
     computed: {
       ...mapState('cart', [
         'cart_loading',
-        'orders',
       ])
-    },
-
-    mounted() {
-      if(!this.orders.length) {
-        this.getUsersOrders()
-          .then(() => {})
-          .catch(error => {
-            this.$noty.error(error.message);
-          })
-      }
     },
 
     components: {

@@ -16,19 +16,35 @@ export default {
   },
   
   methods: {
+    chunk(items, length) {
+      const result = [];
+      
+      for(let i = 0; i < items.length; i+=length) {
+        result.push(items.slice(i, length + i))
+      }
+      
+      return result;
+    },
+    
     splitPages(items) {
-      this.pagesArray = _.chunk(items, this.itemsPerPage);
+      this.pagesArray = this.chunk(items, this.itemsPerPage);
       this.setPage();
     },
     
     setPage() {
-      if(this.pagesArray.length < this.curPage) {
+      const pagesLength = this.pagesArray.length;
+      
+      if(pagesLength && (pagesLength < this.curPage)) {
         this.paginationHandler(1);
         return;
       }
       
-      let resultItems = this.pagesArray[this.curPage - 1];
-      this.pagesResult = resultItems;
+      if(pagesLength) {
+        this.pagesResult = this.pagesArray[this.curPage - 1];
+      } else {
+        this.paginationHandler(1);
+        this.pagesResult = [];
+      }
     },
     
     paginationHandler(page) {

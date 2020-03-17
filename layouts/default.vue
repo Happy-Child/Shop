@@ -70,6 +70,20 @@
     min-height: 100vh;
   }
 
+  .mt-3 {
+    margin-top: 3rem;
+  }
+
+  .my-1 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .my-3 {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+
   .stretch-box {
     display: flex;
     flex-direction: column;

@@ -1,9 +1,20 @@
 export default function ({store, route, redirect}) {
   const isAdmin = store.getters['users/isAdmin'];
-  const isAdminReg = /\/admin\/*/g;
+  const blockForDefaultUserReg = /\/admin\/*/gi;
+  const blockForAdminReg = /\/cart|checkout\/*/gi;
 
-  if(!isAdmin && route.path.match(isAdminReg)) {
-    redirect({name: 'index', query: { info: 'only_admin' }});
+  if(isAdmin) {
+    
+    if(route.path.match(blockForAdminReg)) {
+      redirect({name: 'index', query: { info: 'only_default_user' }});
+    }
+    
+  } else {
+    
+    if(route.path.match(blockForDefaultUserReg)) {
+      redirect({name: 'index', query: { info: 'only_admin' }});
+    }
+    
   }
 }
 

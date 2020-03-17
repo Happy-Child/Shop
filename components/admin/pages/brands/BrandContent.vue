@@ -86,29 +86,25 @@
       thisEdit: {
         type: Boolean
       },
-      category: {
-        type: Object,
+      category: {},
+      products: {
+        type: Array,
+        default: []
       },
+      categories: {
+        type: Array,
+        default: []
+      }
     },
 
     data() {
       return {
-        formData: {
-          name: null,
-        },
+        formData: {},
         category_id: this.getRouteParam('id'),
-        defaultCategories: []
       }
     },
 
     watch: {
-      categories: {
-        handler(categories) {
-          this.defaultCategories = JSON.parse(JSON.stringify(categories));
-        },
-        deep: true,
-        immediate: true
-      },
       category: {
         handler(category) {
           this.formData = JSON.parse(JSON.stringify(category));
@@ -120,14 +116,9 @@
 
     methods: {
       ...mapActions('categories', [
-        'getCategories',
         'createCategory',
         'updateCategory',
         'deleteCategory',
-      ]),
-
-      ...mapActions('products', [
-        'getProducts',
       ]),
 
       cancel() {
@@ -135,7 +126,7 @@
       },
 
       existThisCategory(name) {
-        return !!this.defaultCategories.find(category => {
+        return !!this.categories.find(category => {
           if(this.thisEdit && category.name === this.category.name) return;
           return category.name === name;
         });
@@ -210,13 +201,8 @@
 
     computed: {
       ...mapState('categories', [
-        'categories',
         'categories_loading',
       ]),
-
-      ...mapState('products', [
-        'products',
-      ])
     },
 
     created() {
@@ -226,25 +212,9 @@
     },
 
     mounted() {
-      if(!this.categories.length) {
-        try {
-          this.getCategories();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      if(!this.products.length) {
-        try {
-          this.getProducts();
-        }
-        catch(error) {
-          this.$noty.error(error.message);
-        }
-      }
-
-      M.updateTextFields();
+      setTimeout(() => {
+        M.updateTextFields();
+      }, 0);
 
       const modal = document.querySelectorAll(`#${this.questionModalId}`);
       M.Modal.init(modal, {});

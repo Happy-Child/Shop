@@ -46,11 +46,7 @@
       getProductsCountInCategory(category_id) {
         return this.products.filter(product => product.category_id === category_id).length;
       }
-    },
-
-    mounted() {
-      M.updateTextFields();
-    },
+    }
 
   }
 </script>
