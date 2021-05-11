@@ -16,7 +16,7 @@
     "firebase-admin": "^8.9.2",
     "js-cookie": "^2.2.1",
     "jwt-decode": "^2.2.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "materialize-css": "^1.0.0-rc.2",
     "nuxt": "^2.0.0",
     "vee-validate": "^3.2.5",
